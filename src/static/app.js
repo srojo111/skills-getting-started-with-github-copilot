@@ -20,12 +20,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // Core activity info
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
         `;
+
+        // Participants section (created with DOM methods to avoid accidental HTML injection)
+        const participantsSection = document.createElement("div");
+        participantsSection.className = "participants-section";
+
+        const participantsHeading = document.createElement("h5");
+        participantsHeading.textContent = "Participants";
+        participantsSection.appendChild(participantsHeading);
+
+        const participantsList = document.createElement("ul");
+        participantsList.className = "participants-list";
+
+        // Helper to compute a small initials badge from an email
+        function getInitials(email) {
+          const local = email.split("@")[0];
+          // if local part has separators like '.', '_', or '-', try to form initials
+          const parts = local.split(/[._-]/).filter(Boolean);
+          if (parts.length >= 2) {
+            return (parts[0][0] || "").toUpperCase() + (parts[1][0] || "").toUpperCase();
+          }
+          // fallback: take first two characters
+          return (local[0] || "").toUpperCase() + ((local[1] && /[a-zA-Z]/.test(local[1])) ? local[1].toUpperCase() : "");
+        }
+
+        if (!details.participants || details.participants.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "participant-empty info";
+          empty.textContent = "No participants yet";
+          participantsSection.appendChild(empty);
+        } else {
+          details.participants.forEach((email) => {
+            const li = document.createElement("li");
+            li.className = "participant-item";
+
+            const avatar = document.createElement("span");
+            avatar.className = "avatar";
+            avatar.textContent = getInitials(email);
+
+            const emailSpan = document.createElement("span");
+            emailSpan.className = "participant-email";
+            emailSpan.textContent = email; // use textContent to avoid HTML injection
+
+            li.appendChild(avatar);
+            li.appendChild(emailSpan);
+            participantsList.appendChild(li);
+          });
+
+          participantsSection.appendChild(participantsList);
+        }
+
+        activityCard.appendChild(participantsSection);
 
         activitiesList.appendChild(activityCard);
 
